@@ -2,11 +2,16 @@
 
 import os
 import numpy as np
-from sklearn.model_selection import train_test_split
+import time
+import pandas as pd
+from sklearn.model_selection import StratifiedShuffleSplit
+from sklearn.metrics import classification_report, accuracy_score
+from tensorflow.keras.callbacks import ModelCheckpoint
 
 from data.dataset_loader import load_info_txt
 from data.preprocessing import load_and_augment_images
 from utils.callbacks import get_callbacks
+from utils.visualization import plot_history
 from config import Config
 
 # Dynamic model loading
@@ -28,32 +33,78 @@ MODEL_REGISTRY = {
 
 
 def run_training(model_name: str):
-    print(f"Loading info for training '{model_name}' model...")
+    print(f"[INFO] Preparing data for model: '{model_name}'")
 
     df = load_info_txt(Config.DATA_ROOT, include_normal=True)
     X, Y = load_and_augment_images(df, Config.IMAGE_DIR)
 
-    x_train, x_temp, y_train, y_temp = train_test_split(X, Y, test_size=0.2, random_state=42)
-    x_val, x_test, y_val, y_test = train_test_split(x_temp, y_temp, test_size=0.3, random_state=42)
+    # Flatten labels for stratified split
+    y_flat = np.argmax(Y, axis=1)
+
+    # Stratified splitting into train, val, test
+    sss1 = StratifiedShuffleSplit(n_splits=1, test_size=0.2, random_state=42)
+    for train_idx, test_val_idx in sss1.split(X, y_flat):
+        x_train, x_temp = X[train_idx], X[test_val_idx]
+        y_train, y_temp = Y[train_idx], Y[test_val_idx]
+        y_flat_temp = y_flat[test_val_idx]
+
+    sss2 = StratifiedShuffleSplit(n_splits=1, test_size=0.3, random_state=42)
+    for val_idx, test_idx in sss2.split(x_temp, y_flat_temp):
+        x_val, x_test = x_temp[val_idx], x_temp[test_idx]
+        y_val, y_test = y_temp[val_idx], y_temp[test_idx]
 
     model_builder = MODEL_REGISTRY.get(model_name)
     if not model_builder:
-        raise ValueError(f"Model '{model_name}' not found in MODEL_REGISTRY")
+        raise ValueError(f"[ERROR] Model '{model_name}' not found in registry.")
 
     model = model_builder(input_shape=Config.IMAGE_SHAPE, num_classes=Config.NUM_CLASSES)
 
-    print("Starting training...")
+    # Create model-specific output dir
+    model_output_dir = os.path.join(Config.MODEL_SAVE_PATH, model_name)
+    os.makedirs(model_output_dir, exist_ok=True)
+
+    checkpoint_path = os.path.join(model_output_dir, "best_model.h5")
+    checkpoint = ModelCheckpoint(filepath=checkpoint_path, monitor='val_loss', save_best_only=True, verbose=1)
+
+    print(f"[INFO] Starting training for {Config.EPOCHS} epochs...")
+    start_time = time.time()
+
     history = model.fit(
-        x_train,
-        y_train,
+        x_train, y_train,
         epochs=Config.EPOCHS,
         validation_data=(x_val, y_val),
-        callbacks=get_callbacks(),
-        batch_size=Config.BATCH_SIZE
+        callbacks=get_callbacks() + [checkpoint],
+        batch_size=Config.BATCH_SIZE,
+        verbose=1
     )
 
-    model.save(os.path.join(Config.MODEL_SAVE_PATH, f"{model_name}.h5"))
-    print(f"Training complete. Model saved to {Config.MODEL_SAVE_PATH}")
+    end_time = time.time()
+    elapsed = end_time - start_time
+    print(f"[INFO] Training completed in {elapsed:.2f} seconds.")
+
+    # Save final model
+    final_model_path = os.path.join(model_output_dir, "final_model.h5")
+    model.save(final_model_path)
+    print(f"[INFO] Final model saved at: {final_model_path}")
+
+    # Save training logs
+    history_df = pd.DataFrame(history.history)
+    history_df.to_csv(os.path.join(model_output_dir, "history.csv"), index=False)
+
+    # Evaluate on test set
+    print(f"[INFO] Evaluating on test data...")
+    y_pred = model.predict(x_test)
+    y_pred_class = np.argmax(y_pred, axis=1)
+    y_true_class = np.argmax(y_test, axis=1)
+
+    print(classification_report(y_true_class, y_pred_class, target_names=Config.LABELS.values()))
+    print(f"Test Accuracy: {accuracy_score(y_true_class, y_pred_class):.4f}")
+
+    # Optional: plot training history
+    try:
+        plot_history(history)
+    except Exception as e:
+        print("[WARN] Could not plot training history:", e)
 
 
 if __name__ == "__main__":
@@ -63,4 +114,4 @@ if __name__ == "__main__":
     parser.add_argument("--model", type=str, required=True, help="Model name (e.g., mobilenetv3, xception)")
     args = parser.parse_args()
 
-    run_training(args.model)
+    run_training(args.model.lower())
