@@ -48,7 +48,7 @@ Preprocessing includes:
 
 ---
 
-## 🏗️ Model Architectures
+## Model Architectures
 
 | Model Name     | Architecture           |
 |----------------|------------------------|
@@ -66,7 +66,7 @@ Each model:
 
 ---
 
-## 🚀 Quick Start
+##  Quick Start
 
 ### 1. Install Dependencies
 bash
@@ -80,7 +80,7 @@ Download the data and place it in your main folder:
     └── all-mias-norm/*.pgm
 
 
-##📈 Performance Metrics
+## Evaluation Performance Metrics
 Each trained model reports:
 
 Accuracy
