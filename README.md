@@ -73,7 +73,7 @@ bash
 pip install -r requirements.txt
 
 
-Download the data and place it in your main folder:
+Download the data and place it in your main folder repository....:
 
 ./
     ├── Info.txt
