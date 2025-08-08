@@ -1,0 +1,7 @@
+#to download the complete data 
+import kagglehub
+
+# Download latest version
+path = kagglehub.dataset_download("kmader/mias-mammography")
+
+print("Path to dataset files:", path)
