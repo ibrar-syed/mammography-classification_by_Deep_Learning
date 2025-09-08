@@ -1,4 +1,4 @@
-#  Mammography Classification with Optimized Deep_Learning......
+#  Mammography Classification with Optimized Deep_Learning
 
 A modular and production ready deep learning framework for classifying breast abnormalities using mammographic imaging. 
 
