@@ -1,6 +1,7 @@
 #  Mammography Classification with Optimized Deep_Learning
 
-A modular and production ready deep learning framework for classifying breast abnormalities using mammographic imaging. 
+A modular and production ready deep learning framework for classifying breast abnormalities using mammographic imaging
+
 
 This project leverages tailored CNN architectures and strategic data augmentation to enhance diagnostic accuracy on the MIAS dataset.
 
