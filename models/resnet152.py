@@ -1,4 +1,4 @@
-# models/resnet152.py....
+# models/resnet152.py,..
 # data/dataset_loader.py
 # Copyright (C) 2025 ibrar-syed <syed.ibraras@gmail.com>
 # This file is part of the Cancer Detection Project.
