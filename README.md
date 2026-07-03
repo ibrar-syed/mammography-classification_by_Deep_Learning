@@ -28,7 +28,7 @@ Authors: Syed Ibrar, Hussain et al.
 Published in *MDPI Information*, 2025  
 📎 [Read the paper](https://www.mdpi.com/2078-2489/16/5/359)
 
----
+-------
 
 ## Project Structure
 
