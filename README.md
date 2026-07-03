@@ -16,7 +16,7 @@ This repository implements and compares several pretrained deep learning models 
 - Freezing pre-trained convolutional backbones
 - Modular training and evaluation pipeline
 
----
+-------
 
 ##  Reference
 
