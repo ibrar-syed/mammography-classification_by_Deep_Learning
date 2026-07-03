@@ -49,7 +49,7 @@ Preprocessing includes:
 - Image normalization verification
 - 360° rotation augmentation in 6° steps
 
----
+--------
 
 ## Model Architectures
 
